@@ -3,9 +3,12 @@
 #include <list>
 #include <fstream>
 #include <cstdlib>
+#include <chrono>
+
 
 using namespace std;
 #define LOG_FILE "log_file.txt"
+#define DEBUG 0
 
 /* Veiculo
  * --
@@ -37,10 +40,37 @@ void listar ();
 int escrever_log();
 int ler_log();
 
+// HOJE
+int dia;
+int mes;
+int ano;
+
+
+void hoje() {
+    time_t rawtime;
+    struct tm * timeinfo;
+    char buffer[80];
+
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
+
+    strftime(buffer, 80, "%m/%d/%Y ", timeinfo);
+    string str(buffer);
+
+    dia = timeinfo->tm_mday;
+    mes = timeinfo->tm_mon+1;
+    ano = timeinfo->tm_year+1900;
+
+    if (DEBUG)
+        cout << "HOJE ||| => " << dia << "|" << mes << "|" << ano << endl;
+}
+
+
 int ler_log() {
 
     ifstream logFile;
     string temp ="";
+    veiculo novo;
 
     // Open the file if it is closed
     if(!logFile.is_open())           
@@ -55,9 +85,17 @@ int ler_log() {
             continue;
         }
         else {
-            //cout << temp << endl;
-
+            if (DEBUG)
+                cout << temp << endl;
+            
             // PARSE_INFO
+            novo.matricula = temp.substr(0, temp.find(","));
+            novo.data_inspecao = temp.substr(temp.find(",")+1, temp.length());
+            
+            if (DEBUG)
+                cout << "XYZ - " << novo.matricula << " || " << novo.data_inspecao << endl;
+            
+            frota.push_back(novo);
 
         } 
     }
@@ -116,12 +154,58 @@ void listar () {
     }
 }
 
+void avaliar_datas() {
+
+    cout << "************ AVALIACAO ************   " << endl;
+
+
+    // imprime todos os veiculos da frota
+    list<veiculo>::iterator it;
+    for(it = frota.begin(); it!=frota.end();it++) {
+		cout << "Matricula: " << it->matricula << " \t|| Data de Inspecao: " << it->data_inspecao << endl;
+        
+        // Se a data de inspeçao menor que 30 dias, imprimir aviso
+
+        // PARSE DATA
+        int parse_1 = it->data_inspecao.find('-');
+        
+        auto dia_insp = stoi(it->data_inspecao.substr(0, parse_1));
+        auto mes_insp = stoi(it->data_inspecao.substr(parse_1+1, parse_1+2));
+        auto ano_insp = stoi(it->data_inspecao.substr(parse_1+4, it->data_inspecao.length()));
+
+        
+        if (DEBUG)
+            cout << "* Inspecao *   " << it->matricula 
+                << " - " << dia_insp 
+                << "|" << mes_insp 
+                << "|" << ano_insp
+                << endl;
+
+        // IF DATA-HOJE menor Q 30 dias
+        if (ano_insp > ano) {
+            //cout << "---OK--- " << it->matricula << endl;
+        }
+        else if (mes_insp > mes) {
+            //cout << "---OK--- " << it->matricula << endl;
+        }
+        else        //      MENSAGEM ALERTA
+            cout << "******** ALERTA ******** " << it->matricula << endl;
+    }
+
+
+}
+
 
 int main () {
     cout << "Bem Vindo a GesCar // Gestao de Veiculos\n";
 
     veiculo novo;
     int choice;
+
+    hoje();
+    ler_log();
+    avaliar_datas();
+    return 1;
 
     while (1) {
         cout << "MENU::\n";
