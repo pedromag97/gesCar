@@ -28,6 +28,7 @@ struct veiculo {
     // bool ativo;
     // data do selo + preço
     // seguro + preço
+    // int dono; // 1 - Pedro Mag., 2 - Fernando Mag., 3 - 
     string data_inspecao;
 };
 
@@ -66,7 +67,6 @@ void hoje() {
         cout << "HOJE ||| => " << dia << "|" << mes << "|" << ano << endl;
 }
 
-
 int ler_log() {
 
     ifstream logFile;
@@ -83,7 +83,7 @@ int ler_log() {
 
         if (temp == "") {
             //cout << "stop" << endl;
-            continue;
+            break;
         }
         else {
             if (DEBUG)
@@ -98,6 +98,7 @@ int ler_log() {
             
             frota.push_back(novo);
 
+            temp = "";
         } 
     }
     // close file stream
@@ -113,7 +114,7 @@ int escrever_log() {
     logFile.open(LOG_FILE, std::ios::app);
     //Write data into log file
     string temp="";
-    temp = frota.back().matricula + "," + frota.back().data_inspecao;
+    temp = frota.back().matricula + "," + frota.back().data_inspecao + "\n";
     logFile << temp;
     // close file stream
     logFile.close();
@@ -134,7 +135,7 @@ void inserir (veiculo novo) {
 
     // Inserir na empresa
     frota.push_back(novo);
-    // 
+
     escrever_log();
 
     // Inserir na base de dados
@@ -144,26 +145,32 @@ void inserir (veiculo novo) {
 /* Listar tudo... */
 void listar () { 
 
-    ler_log();
+    if (frota.size() <= 0)
+        ler_log();
 
     cout << "Na Empresa tem " << frota.size() << " veiculos." << endl;
     
     // imprime todos os veiculos da frota
     list<veiculo>::iterator it;
     for(it = frota.begin(); it!=frota.end();it++) {
-		cout << "Matricula: " << it->matricula << " \t|| Data de Inspeção: " << it->data_inspecao << endl;
+		cout << "Matricula: " << it->matricula << " \t|| Data de Inspecao: " << it->data_inspecao << endl;
     }
 }
 
 void avaliar_datas() {
 
-    cout << "************ AVALIACAO ************   " << endl;
+    int counter=0;
 
+    cout << "************ AVALIACAO ************   " << endl;
 
     // imprime todos os veiculos da frota
     list<veiculo>::iterator it;
     for(it = frota.begin(); it!=frota.end();it++) {
-		cout << "Matricula: " << it->matricula << " \t|| Data de Inspecao: " << it->data_inspecao << endl;
+		if (DEBUG)
+            cout << "Matricula: " << it->matricula << " \t|| Data de Inspecao: " << it->data_inspecao << endl;
+        
+        // contador
+        counter++;
         
         // Se a data de inspeçao menor que 30 dias, imprimir aviso
 
@@ -182,18 +189,19 @@ void avaliar_datas() {
                 << "|" << ano_insp
                 << endl;
 
-        // IF DATA-HOJE menor Q 30 dias
+        // IF DATA DE INSPEÇÃO - HOJE() menor Q 30 dias
         if (ano_insp > ano) {
             //cout << "---OK--- " << it->matricula << endl;
         }
         else if (mes_insp > mes) {
             //cout << "---OK--- " << it->matricula << endl;
         }
-        else        //      MENSAGEM ALERTA
+        else {       //      MENSAGEM ALERTA
             cout << "******** ALERTA ******** " << it->matricula << endl;
+		    cout << "Matricula: " << it->matricula << " \t|| Data de Inspecao: " << it->data_inspecao << endl;
+        }
     }
-
-
+    cout << "Foram revistos " << counter << " na frota de "  << frota.size() << " veiculos." << endl;
 }
 
 
@@ -205,9 +213,11 @@ int main () {
 
     hoje();
     ler_log();
-    avaliar_datas();
-    return 1;
 
+    // Primeira avaliação
+    avaliar_datas();
+
+    // Menu Interativo
     while (1) {
         cout << "MENU::\n";
         cout << "(1) - Inserir novo veiculo\n";
