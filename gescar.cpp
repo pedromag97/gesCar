@@ -21,6 +21,7 @@ struct veiculo {
     // string marca;
     // string modelo;
     string matricula;
+    int tipo_veiculo; // 1 - Familiar, 2 - Comercial
     // numero de chaci
     // data de revisao
     // data de inspeçao
